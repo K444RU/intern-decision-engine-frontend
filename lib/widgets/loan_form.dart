@@ -38,13 +38,30 @@ class _LoanFormState extends State<LoanForm> {
         int tempAmount = int.parse(result['loanAmount'].toString());
         int tempPeriod = int.parse(result['loanPeriod'].toString());
 
-        if (tempAmount <= _loanAmount || tempPeriod > _loanPeriod) {
-          _loanAmountResult = int.parse(result['loanAmount'].toString());
-          _loanPeriodResult = int.parse(result['loanPeriod'].toString());
-        } else {
+        // Case 1: Applied loan amount < Approved loan amount
+        if (_loanAmount < tempAmount) {
+          _loanAmountResult = tempAmount;
+          _loanPeriodResult = tempPeriod;
+        }
+        // Case 2: Applied loan amount > Approved loan amount
+        else if (_loanAmount > tempAmount) {
+          // Check if a suitable loan amount is found within the selected period
+          if (tempPeriod >= _loanPeriod) {
+            _loanAmountResult = _loanAmount;
+            _loanPeriodResult = _loanPeriod;
+          } else {
+            // If no suitable loan amount is found within the selected period, show an error message
+            _loanAmountResult = -1;
+            _loanPeriodResult = -1;
+            _errorMessage = "No suitable loan amount found within the selected period.";
+          }
+        }
+        // Case 3: Applied loan amount = Approved loan amount
+        else {
           _loanAmountResult = _loanAmount;
           _loanPeriodResult = _loanPeriod;
         }
+
         _errorMessage = result['errorMessage'].toString();
       });
     } else {
@@ -52,6 +69,7 @@ class _LoanFormState extends State<LoanForm> {
       _loanPeriodResult = 0;
     }
   }
+
 
   // Builds the application form widget.
   // The widget automatically queries the endpoint for the latest data
@@ -152,7 +170,7 @@ class _LoanFormState extends State<LoanForm> {
                           padding: EdgeInsets.only(left: 12),
                           child: Align(
                               alignment: Alignment.centerLeft,
-                              child: Text('6 months')),
+                              child: Text('12 months')),
                         ),
                       ),
                       Expanded(
